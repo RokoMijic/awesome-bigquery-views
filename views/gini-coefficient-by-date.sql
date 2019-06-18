@@ -1,4 +1,41 @@
+
+-- ******************************************************************************************************************************
 WITH
+
+                    -- remove where clauses below to unlimit the time period (will use A LOT more data ~ 200 GB!) 
+
+  traces_in AS (  
+                            SELECT *  
+                            FROM  `bigquery-public-data.crypto_ethereum.traces`
+                            WHERE   (DATE(block_timestamp) <= DATE_ADD('2015-07-30', INTERVAL 50 DAY ) )
+            ),
+                        
+  blocks_in AS (
+                            SELECT * 
+                            FROM  `bigquery-public-data.crypto_ethereum.blocks` 
+                            WHERE   (DATE(timestamp      ) <= DATE_ADD('2015-07-30', INTERVAL 50 DAY ) )
+            ),
+
+  transactions_in AS (
+                            SELECT * 
+                            FROM  `bigquery-public-data.crypto_ethereum.transactions` 
+                            WHERE   (DATE(block_timestamp) <= DATE_ADD('2015-07-30', INTERVAL 50 DAY ) )
+            ),
+            
+  calendar AS (
+                            SELECT
+                              date
+                            FROM
+                              UNNEST(GENERATE_DATE_ARRAY('2015-07-30', CURRENT_DATE())) AS date 
+                            WHERE   (    date              <= DATE_ADD('2015-07-30', INTERVAL 50 DAY ) )
+              ),
+
+-- ******************************************************************************************************************************
+
+
+
+
+
   double_entry_book AS (
                                 SELECT
                                   to_address AS address,
@@ -6,7 +43,7 @@ WITH
                                   block_timestamp
                                   -- debits
                                 FROM
-                                  `bigquery-public-data.crypto_ethereum.traces`
+                                  traces_in
                                 WHERE TRUE 
                                   AND to_address IS NOT NULL
                                   AND status = 1
@@ -18,7 +55,7 @@ WITH
                                   -value AS value,
                                   block_timestamp
                                 FROM
-                                  `bigquery-public-data.crypto_ethereum.traces`
+                                  traces_in
                                 WHERE TRUE
                                   AND from_address IS NOT NULL
                                   AND status = 1
@@ -31,9 +68,9 @@ WITH
                                   SUM(CAST(receipt_gas_used AS numeric) * CAST(gas_price AS numeric)) AS value,
                                   timestamp AS block_timestamp
                                 FROM
-                                  `bigquery-public-data.crypto_ethereum.transactions` AS transactions
+                                  transactions_in AS transactions
                                 JOIN
-                                  `bigquery-public-data.crypto_ethereum.blocks` AS blocks
+                                  blocks_in AS blocks
                                 ON
                                   blocks.number = transactions.block_number
                                   AND blocks.timestamp = transactions.block_timestamp
@@ -47,14 +84,14 @@ WITH
                                   -(CAST(receipt_gas_used AS numeric) * CAST(gas_price AS numeric)) AS value,
                                   block_timestamp
                                 FROM
-                                  `bigquery-public-data.crypto_ethereum.transactions` 
+                                  transactions_in
                                ),
     
   double_entry_book_by_date AS (
                                 SELECT
                                   DATE(block_timestamp) AS date,
                                   address,
-                                  SUM(value * 0.00000001) AS value
+                                  SUM(value * power(10, -18) ) AS value
                                 FROM
                                   double_entry_book
                                 GROUP BY
@@ -70,17 +107,11 @@ WITH
                                 FROM
                                   double_entry_book_by_date 
                              ),
-  calendar AS (
-                                SELECT
-                                  date
-                                FROM
-                                  UNNEST(GENERATE_DATE_ARRAY('2015-07-30', CURRENT_DATE())) AS date 
-              ),
               
   daily_balances AS (
                                 SELECT
                                   address,
-                                  calendar.date,
+                                  calendar.date AS date,
                                   balance
                                 FROM
                                   daily_balances_with_gaps
@@ -90,9 +121,10 @@ WITH
                                   daily_balances_with_gaps.date <= calendar.date
                                   AND calendar.date < daily_balances_with_gaps.next_date
                                 WHERE
-                                  balance > 1 
+                                  balance >= 0
                     ),
-                    
+                   
+
   address_counts AS (
                                 SELECT
                                   date,
