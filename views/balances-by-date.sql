@@ -130,5 +130,4 @@ SELECT
  balance
 FROM
   daily_balances
-LIMIT 100000
 
