@@ -1,3 +1,3 @@
 # awesome-bigquery-views
 
-Google BigQuery views for analysing cryptocurrencies focusing on Ethereum. 
+Google BigQuery views for analysing Ethereum. 
