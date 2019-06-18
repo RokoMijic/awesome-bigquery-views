@@ -1,4 +1,6 @@
 
+-- ***** BALANCE OF EVERY ETHEREUM ADDRESS ON EVERY DAY ****
+
 -- ******************************************************************************************************************************
 WITH
 
@@ -59,8 +61,7 @@ WITH
                                 WHERE TRUE
                                   AND from_address IS NOT NULL
                                   AND status = 1
-                                  AND (call_type NOT IN ('delegatecall', 'callcode','staticcall')
-                                    OR call_type IS NULL)
+                                  AND (call_type NOT IN ('delegatecall', 'callcode','staticcall') OR call_type IS NULL)
                                 UNION ALL
                                   -- transaction fees debits
                                 SELECT
