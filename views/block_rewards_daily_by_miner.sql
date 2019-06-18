@@ -1,11 +1,21 @@
+
+-- *********************************************************************************************
+
+WITH blocks_in AS (
+                            SELECT * 
+                            FROM  `bigquery-public-data.crypto_ethereum.blocks` 
+                            WHERE   (DATE(timestamp      ) <= DATE_ADD('2015-07-30', INTERVAL 50 DAY ) )
+                  )
+               
+-- *********************************************************************************************
+
+
 SELECT
   miner,
   DATE(timestamp) AS date,
   COUNT(miner) AS total_block_reward
 FROM
-  `bigquery-public-data.crypto_ethereum.blocks` 
-WHERE TRUE
-  AND (DATE(timestamp) >= DATE_ADD(CURRENT_DATE(), INTERVAL -7 DAY ) )
+  blocks_in
 GROUP BY
   miner,
   date
