@@ -1,12 +1,24 @@
-with ether_emitted_by_date AS (
+
+-- ******************************************************************************************************************************
+WITH
+  traces_in AS (  
+                            SELECT *  
+                            FROM  `bigquery-public-data.crypto_ethereum.traces`
+                            WHERE   (DATE(block_timestamp) <= DATE_ADD('2015-07-30', INTERVAL 50 DAY ) )
+            ),
+                        
+-- ******************************************************************************************************************************
+
+
+
+ether_emitted_by_date AS (
   SELECT
     DATE(block_timestamp) AS date,
     SUM(value) AS value
   FROM
-    `bigquery-public-data.ethereum_blockchain.traces`
+    traces_in
   WHERE TRUE
     AND ( trace_type IN ('genesis','reward') )
-    AND ( DATE(block_timestamp) >= DATE_ADD(CURRENT_DATE(), INTERVAL -7 DAY ) )
   GROUP BY
     DATE(block_timestamp) )
 
