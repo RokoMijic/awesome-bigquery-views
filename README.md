@@ -1,5 +1,7 @@
 # awesome-bigquery-views
 
+See also: https://github.com/YazzyYaz/Ether-Queries
+
 Google BigQuery views for analysing Ethereum. 
 
 [Balance of every Eth address on every day](https://github.com/RokoMijic/awesome-bigquery-views/blob/master/views/balances-by-date.sql)
