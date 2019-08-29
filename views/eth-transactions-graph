@@ -1,4 +1,3 @@
-
 -- ***** ETH TRANSACTION GRAPH ****
 
 -- ******************************************************************************************************************************
@@ -14,13 +13,12 @@ WITH  transactions_in AS (
 -- ******************************************************************************************************************************
 
 SELECT 
+block_timestamp as timestamp,
 from_address,
-to_address, 
+COALESCE(to_address, receipt_contract_address) AS to_wallet_or_contract,
 value * power(10, -18) as eth_value
 FROM transactions_in
 WHERE TRUE
-AND to_address IS NOT NULL
-AND from_address IS NOT NULL
+AND from_address IS NOT NULL 
 AND value > 0
-ORDER BY from_address
 
