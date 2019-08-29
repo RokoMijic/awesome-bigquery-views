@@ -1,0 +1,26 @@
+
+-- ***** ETH TRANSACTION GRAPH ****
+
+-- ******************************************************************************************************************************
+
+                    -- remove where clause below to unlimit the time period (will use A LOT more data) 
+
+WITH  transactions_in AS (
+                            SELECT * 
+                            FROM  `bigquery-public-data.crypto_ethereum.transactions` 
+                            WHERE   (DATE(block_timestamp) <= DATE_ADD('2015-07-30', INTERVAL 30 DAY ) )
+                         )
+            
+-- ******************************************************************************************************************************
+
+SELECT 
+from_address,
+to_address, 
+value * power(10, -18) as eth_value
+FROM transactions_in
+WHERE TRUE
+AND to_address IS NOT NULL
+AND from_address IS NOT NULL
+AND value > 0
+ORDER BY from_address
+
